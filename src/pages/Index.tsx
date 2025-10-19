@@ -1,20 +1,20 @@
-import { useState, useRef, useEffect } from "react";
-import { Sparkles } from "lucide-react";
-import ChatMessage from "@/components/ChatMessage";
-import ChatInput from "@/components/ChatInput";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useRef, useEffect } from 'react';
+import { Sparkles } from 'lucide-react';
+import ChatMessage from '@/components/ChatMessage';
+import ChatInput from '@/components/ChatInput';
+import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
   const [messages, setMessages] = useState([
-    { text: "Oie, tudo bem?", isUser: false },
-    { text: "Meu nome é Maria. Como posso te ajudar hoje?", isUser: false },
+    { text: 'Oie, tudo bem?', isUser: false },
+    { text: 'Meu nome é Maria. Como posso te ajudar hoje?', isUser: false },
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef(null);
   const { toast } = useToast();
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   useEffect(() => {
@@ -23,45 +23,118 @@ const Index = () => {
 
   const sendMessageToOpenAI = async (userMessage) => {
     try {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${import.meta.env.VITE_OPENAI_API_KEY || "fake-key-please-add-real-key"}`,
-        },
-        body: JSON.stringify({
-          model: "gpt-3.5-turbo",
-          messages: [
-            {
-              role: "system",
-              content: "Você é Maria, uma assistente virtual prestativa e amigável. Responda de forma concisa e útil em português do Brasil.",
-            },
-            ...messages.map((msg) => ({
-              role: msg.isUser ? "user" : "assistant",
-              content: msg.text,
-            })),
-            {
-              role: "user",
-              content: userMessage,
-            },
-          ],
-          temperature: 0.7,
-          max_tokens: 500,
-        }),
-      });
+      const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
 
-      if (!response.ok) {
-        throw new Error("Erro ao conectar com a API");
+      if (!apiKey || apiKey === 'fake-key-please-add-real-key') {
+        throw new Error('Chave da API não configurada');
       }
 
-      const data = await response.json();
-      return data.choices[0].message.content;
+      // Tentar primeiro com endpoint Responses API (para chaves GPT-5-nano)
+      try {
+        const response = await fetch('https://api.openai.com/v1/responses', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model: 'gpt-5-nano',
+            input: `Você é Maria, uma assistente virtual prestativa e amigável. Responda de forma concisa e útil em português do Brasil.
+
+Histórico da conversa:
+${messages
+  .map((msg) => `${msg.isUser ? 'Usuário' : 'Maria'}: ${msg.text}`)
+  .join('\n')}
+
+Usuário: ${userMessage}
+
+Maria:`,
+            store: true,
+            temperature: 0.7,
+            max_tokens: 500,
+          }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          return data.response;
+        }
+
+        // Se chegou aqui, o endpoint Responses falhou
+        const errorData = await response.json().catch(() => ({}));
+        const errorMessage = errorData.error?.message || '';
+
+        // Se for erro de modelo não encontrado, tentar com endpoint tradicional
+        if (
+          errorMessage.includes('not found') ||
+          errorMessage.includes('model')
+        ) {
+          throw new Error('TRY_CHAT_COMPLETIONS');
+        }
+
+        throw new Error(errorMessage);
+      } catch (responsesError) {
+        // Se foi erro específico para tentar Chat Completions, ou erro de rede
+        if (
+          responsesError.message === 'TRY_CHAT_COMPLETIONS' ||
+          responsesError.message.includes('fetch')
+        ) {
+          // Fallback para endpoint Chat Completions (chaves normais)
+          const chatResponse = await fetch(
+            'https://api.openai.com/v1/chat/completions',
+            {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${apiKey}`,
+              },
+              body: JSON.stringify({
+                model: 'gpt-3.5-turbo',
+                messages: [
+                  {
+                    role: 'system',
+                    content:
+                      'Você é Maria, uma assistente virtual prestativa e amigável. Responda de forma concisa e útil em português do Brasil.',
+                  },
+                  ...messages.map((msg) => ({
+                    role: msg.isUser ? 'user' : 'assistant',
+                    content: msg.text,
+                  })),
+                  {
+                    role: 'user',
+                    content: userMessage,
+                  },
+                ],
+                temperature: 0.7,
+                max_tokens: 500,
+              }),
+            }
+          );
+
+          if (!chatResponse.ok) {
+            const errorData = await chatResponse.json().catch(() => ({}));
+            throw new Error(
+              errorData.error?.message || 'Erro ao conectar com a API'
+            );
+          }
+
+          const chatData = await chatResponse.json();
+          return chatData.choices[0].message.content;
+        }
+
+        // Se foi outro tipo de erro no endpoint Responses, propagar
+        throw responsesError;
+      }
     } catch (error) {
-      console.error("Erro:", error);
+      console.error('Erro:', error);
       toast({
-        title: "Erro ao enviar mensagem",
-        description: "Não foi possível se conectar ao ChatGPT. Verifique sua chave de API.",
-        variant: "destructive",
+        title: 'Erro ao enviar mensagem',
+        description:
+          error.message.includes('quota') ||
+          error.message.includes('insufficient_quota')
+            ? 'Sua chave da API OpenAI não tem mais créditos. Verifique seu plano e cobrança na plataforma OpenAI.'
+            : 'Não foi possível se conectar ao ChatGPT. Verifique sua chave de API.',
+        variant: 'destructive',
       });
       return null;
     }
@@ -115,9 +188,18 @@ const Index = () => {
               </div>
               <div className="glass-effect rounded-2xl px-4 py-3">
                 <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+                  <div
+                    className="w-2 h-2 bg-primary rounded-full animate-bounce"
+                    style={{ animationDelay: '0ms' }}
+                  ></div>
+                  <div
+                    className="w-2 h-2 bg-primary rounded-full animate-bounce"
+                    style={{ animationDelay: '150ms' }}
+                  ></div>
+                  <div
+                    className="w-2 h-2 bg-primary rounded-full animate-bounce"
+                    style={{ animationDelay: '300ms' }}
+                  ></div>
                 </div>
               </div>
             </div>

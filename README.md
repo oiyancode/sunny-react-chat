@@ -1,58 +1,58 @@
-# Welcome to your Lovable project
+# Bem-vindo ao seu projeto Lovable
 
-## Project info
+## Informações do Projeto
 
 **URL**: https://lovable.dev/projects/ceaceab2-b827-45f3-91f6-2980b2b33355
 
-## How can I edit this code?
+## Como editar este código?
 
-There are several ways of editing your application.
+Existem várias maneiras de editar sua aplicação.
 
-**Use Lovable**
+**Usar Lovable**
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/ceaceab2-b827-45f3-91f6-2980b2b33355) and start prompting.
+Basta visitar o [Projeto Lovable](https://lovable.dev/projects/ceaceab2-b827-45f3-91f6-2980b2b33355) e começar a fazer prompts.
 
-Changes made via Lovable will be committed automatically to this repo.
+As alterações feitas via Lovable serão commitadas automaticamente neste repositório.
 
-**Use your preferred IDE**
+**Usar sua IDE preferida**
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Se você quiser trabalhar localmente usando sua própria IDE, pode clonar este repositório e fazer push das alterações. As alterações enviadas também serão refletidas no Lovable.
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+O único requisito é ter o Node.js e npm instalados - [instalar com nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-Follow these steps:
+Siga estes passos:
 
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+# Passo 1: Clone o repositório usando a URL do Git do projeto.
+git clone <SUA_GIT_URL>
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+# Passo 2: Navegue até o diretório do projeto.
+cd <SEU_NOME_DO_PROJETO>
 
-# Step 3: Install the necessary dependencies.
+# Passo 3: Instale as dependências necessárias.
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Passo 4: Inicie o servidor de desenvolvimento com recarregamento automático e preview instantâneo.
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+**Editar um arquivo diretamente no GitHub**
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+- Navegue até o(s) arquivo(s) desejado(s).
+- Clique no botão "Edit" (ícone de lápis) no canto superior direito da visualização do arquivo.
+- Faça suas alterações e commit as mudanças.
 
-**Use GitHub Codespaces**
+**Usar GitHub Codespaces**
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- Navegue até a página principal do seu repositório.
+- Clique no botão "Code" (botão verde) próximo ao canto superior direito.
+- Selecione a aba "Codespaces".
+- Clique em "New codespace" para iniciar um novo ambiente Codespace.
+- Edite arquivos diretamente no Codespace e faça commit e push das suas alterações quando terminar.
 
-## What technologies are used for this project?
+## Quais tecnologias são usadas neste projeto?
 
-This project is built with:
+Este projeto é construído com:
 
 - Vite
 - TypeScript
@@ -60,14 +60,65 @@ This project is built with:
 - shadcn-ui
 - Tailwind CSS
 
-## How can I deploy this project?
+## 🔒 Configuração de Segurança
 
-Simply open [Lovable](https://lovable.dev/projects/ceaceab2-b827-45f3-91f6-2980b2b33355) and click on Share -> Publish.
+**Importante**: Antes de executar este projeto, você precisa configurar suas variáveis de ambiente:
 
-## Can I connect a custom domain to my Lovable project?
+1. Copie o arquivo de exemplo de ambiente:
 
-Yes, you can!
+   ```sh
+   cp .env.example .env
+   ```
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+2. Edite o `.env` e adicione sua chave da API do OpenAI:
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+   ```env
+   VITE_OPENAI_API_KEY=sua-chave-real-da-api-openai-aqui
+   ```
+
+   **Nota**: Este projeto é compatível com qualquer chave da OpenAI e detecta automaticamente o tipo de chave e modelo disponível.
+
+   ### 🤖 Sistema Inteligente de API:
+
+   O projeto automaticamente:
+
+   - **Detecta o tipo de chave** (GPT-5-nano ou chaves tradicionais)
+   - **Tenta primeiro** com o endpoint Responses API (para chaves modernas)
+   - **Faz fallback** para Chat Completions API (para chaves tradicionais)
+   - **Funciona com qualquer modelo** disponível na sua chave
+
+3. **Nunca faça commit do seu arquivo `.env` no controle de versão!** O `.gitignore` já está configurado para excluí-lo.
+
+## Como fazer deploy deste projeto?
+
+Basta abrir o [Lovable](https://lovable.dev/projects/ceaceab2-b827-45f3-91f6-2980b2b33355) e clicar em Share -> Publish.
+
+### Notas de Segurança para Deploy:
+
+- Certifique-se de que seu arquivo `.env` não está incluído nos deployments
+- Use variáveis de ambiente na sua plataforma de hospedagem para chaves de API
+- Rotacione regularmente suas chaves de API
+- Monitore seu uso da API e custos
+
+### 🔧 Resolução de Problemas:
+
+**Erro de cota excedida (insufficient_quota):**
+
+- Acesse [OpenAI Platform](https://platform.openai.com/)
+- Vá em Settings > Billing
+- Adicione créditos à sua conta ou verifique seu plano atual
+- Chaves de teste geralmente têm cotas limitadas
+
+**Erro de chave inválida:**
+
+- Verifique se a chave está correta no arquivo `.env`
+- Certifique-se de que a chave começa com `sk-proj-` ou `sk-`
+- Regenerar a chave se necessário na plataforma OpenAI
+
+## Posso conectar um domínio personalizado ao meu projeto Lovable?
+
+Sim, você pode!
+
+Para conectar um domínio, navegue até Project > Settings > Domains e clique em Connect Domain.
+
+Leia mais aqui: [Configurando um domínio personalizado](https://docs.lovable.dev/features/custom-domain#custom-domain)
