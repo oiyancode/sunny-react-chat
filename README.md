@@ -1,4 +1,4 @@
-# Bem-vindo ao seu projeto Lovable
+# 🤖 Chatbot com IA - OpenRouter Integration
 
 ## Informações do Projeto
 
@@ -70,22 +70,43 @@ Este projeto é construído com:
    cp .env.example .env
    ```
 
-2. Edite o `.env` e adicione sua chave da API do OpenAI:
+2. Edite o `.env` e adicione sua chave da API do OpenRouter:
 
    ```env
-   VITE_OPENAI_API_KEY=sua-chave-real-da-api-openai-aqui
+   VITE_OPENROUTER_API_KEY=sua-chave-da-api-openrouter-aqui
    ```
 
-   **Nota**: Este projeto é compatível com qualquer chave da OpenAI e detecta automaticamente o tipo de chave e modelo disponível.
+   ### 🚀 Como obter uma chave do OpenRouter:
 
-   ### 🤖 Sistema Inteligente de API:
+   1. Acesse [OpenRouter.ai](https://openrouter.ai/)
+   2. Crie uma conta ou faça login
+   3. Vá em "API Keys" no menu
+   4. Clique em "Create API Key"
+   5. Dê um nome para sua chave e copie-a
+   6. Cole no arquivo `.env`
 
-   O projeto automaticamente:
+   ### 🤖 Sistema de IA Otimizado:
 
-   - **Detecta o tipo de chave** (GPT-5-nano ou chaves tradicionais)
-   - **Tenta primeiro** com o endpoint Responses API (para chaves modernas)
-   - **Faz fallback** para Chat Completions API (para chaves tradicionais)
-   - **Funciona com qualquer modelo** disponível na sua chave
+   O projeto está configurado com:
+
+   - **Modelo padrão:** `meta-llama/llama-3.2-3b-instruct:free` (gratuito)
+   - **Respostas longas:** Até 500 tokens (300-400 palavras)
+   - **Personalidade:** Assistente virtual amigável em português
+   - **Parâmetros otimizados:** Temperature 0.7, Top-p 0.9
+
+   ### 💰 Modelos Disponíveis:
+
+   **Modelos Gratuitos:**
+
+   - `meta-llama/llama-3.2-3b-instruct:free` ✅ (Configurado)
+   - `google/gemma-7b-it:free`
+   - `huggingface/zephyr-7b-beta:free`
+
+   **Modelos Pagos (Recomendados):**
+
+   - `gpt-4o-mini` - Econômico e rápido
+   - `claude-3-haiku` - Inteligente e eficiente
+   - `gpt-4` - Máxima qualidade
 
 3. **Nunca faça commit do seu arquivo `.env` no controle de versão!** O `.gitignore` já está configurado para excluí-lo.
 
@@ -104,16 +125,28 @@ Basta abrir o [Lovable](https://lovable.dev/projects/ceaceab2-b827-45f3-91f6-298
 
 **Erro de cota excedida (insufficient_quota):**
 
-- Acesse [OpenAI Platform](https://platform.openai.com/)
-- Vá em Settings > Billing
+- Acesse [OpenRouter.ai](https://openrouter.ai/)
+- Vá em "Billing" ou "Credits"
 - Adicione créditos à sua conta ou verifique seu plano atual
-- Chaves de teste geralmente têm cotas limitadas
+- Alguns modelos gratuitos têm limitações de uso
 
 **Erro de chave inválida:**
 
 - Verifique se a chave está correta no arquivo `.env`
-- Certifique-se de que a chave começa com `sk-proj-` ou `sk-`
-- Regenerar a chave se necessário na plataforma OpenAI
+- Certifique-se de que a chave começa com `sk-or-v1-`
+- Regenerar a chave se necessário no painel do OpenRouter
+
+**Erro 404 (Modelo não encontrado):**
+
+- Alguns modelos podem não estar disponíveis na sua região
+- Tente modelos alternativos da lista acima
+- Entre em contato com o suporte do OpenRouter se persistir
+
+**Erro 403 (Forbidden):**
+
+- Sua chave pode não ter acesso a modelos pagos
+- Verifique se você tem créditos suficientes
+- Alguns modelos exigem verificação de conta
 
 ## Posso conectar um domínio personalizado ao meu projeto Lovable?
 

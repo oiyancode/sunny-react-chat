@@ -1,157 +1,79 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState } from 'react';
 import { Sparkles } from 'lucide-react';
 import ChatMessage from '@/components/ChatMessage';
 import ChatInput from '@/components/ChatInput';
-import { useToast } from '@/hooks/use-toast';
 
 const Index = () => {
   const [messages, setMessages] = useState([
-    { text: 'Oie, tudo bem?', isUser: false },
-    { text: 'Meu nome é Maria. Como posso te ajudar hoje?', isUser: false },
+    {
+      text: 'Olá! Eu sou uma assistente virtual amigável e prestativa. Como posso te ajudar hoje?',
+      isUser: false,
+    },
   ]);
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef(null);
-  const { toast } = useToast();
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const sendMessageToOpenAI = async (userMessage) => {
-    try {
-      const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-
-      if (!apiKey || apiKey === 'fake-key-please-add-real-key') {
-        throw new Error('Chave da API não configurada');
-      }
-
-      // Tentar primeiro com endpoint Responses API (para chaves GPT-5-nano)
-      try {
-        const response = await fetch('https://api.openai.com/v1/responses', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            model: 'gpt-5-nano',
-            input: `Você é Maria, uma assistente virtual prestativa e amigável. Responda de forma concisa e útil em português do Brasil.
-
-Histórico da conversa:
-${messages
-  .map((msg) => `${msg.isUser ? 'Usuário' : 'Maria'}: ${msg.text}`)
-  .join('\n')}
-
-Usuário: ${userMessage}
-
-Maria:`,
-            store: true,
-            temperature: 0.7,
-            max_tokens: 500,
-          }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          return data.response;
-        }
-
-        // Se chegou aqui, o endpoint Responses falhou
-        const errorData = await response.json().catch(() => ({}));
-        const errorMessage = errorData.error?.message || '';
-
-        // Se for erro de modelo não encontrado, tentar com endpoint tradicional
-        if (
-          errorMessage.includes('not found') ||
-          errorMessage.includes('model')
-        ) {
-          throw new Error('TRY_CHAT_COMPLETIONS');
-        }
-
-        throw new Error(errorMessage);
-      } catch (responsesError) {
-        // Se foi erro específico para tentar Chat Completions, ou erro de rede
-        if (
-          responsesError.message === 'TRY_CHAT_COMPLETIONS' ||
-          responsesError.message.includes('fetch')
-        ) {
-          // Fallback para endpoint Chat Completions (chaves normais)
-          const chatResponse = await fetch(
-            'https://api.openai.com/v1/chat/completions',
-            {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${apiKey}`,
-              },
-              body: JSON.stringify({
-                model: 'gpt-3.5-turbo',
-                messages: [
-                  {
-                    role: 'system',
-                    content:
-                      'Você é Maria, uma assistente virtual prestativa e amigável. Responda de forma concisa e útil em português do Brasil.',
-                  },
-                  ...messages.map((msg) => ({
-                    role: msg.isUser ? 'user' : 'assistant',
-                    content: msg.text,
-                  })),
-                  {
-                    role: 'user',
-                    content: userMessage,
-                  },
-                ],
-                temperature: 0.7,
-                max_tokens: 500,
-              }),
-            }
-          );
-
-          if (!chatResponse.ok) {
-            const errorData = await chatResponse.json().catch(() => ({}));
-            throw new Error(
-              errorData.error?.message || 'Erro ao conectar com a API'
-            );
-          }
-
-          const chatData = await chatResponse.json();
-          return chatData.choices[0].message.content;
-        }
-
-        // Se foi outro tipo de erro no endpoint Responses, propagar
-        throw responsesError;
-      }
-    } catch (error) {
-      console.error('Erro:', error);
-      toast({
-        title: 'Erro ao enviar mensagem',
-        description:
-          error.message.includes('quota') ||
-          error.message.includes('insufficient_quota')
-            ? 'Sua chave da API OpenAI não tem mais créditos. Verifique seu plano e cobrança na plataforma OpenAI.'
-            : 'Não foi possível se conectar ao ChatGPT. Verifique sua chave de API.',
-        variant: 'destructive',
-      });
-      return null;
-    }
-  };
 
   const handleSendMessage = async (text) => {
     const userMessage = { text, isUser: true };
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
 
-    const aiResponse = await sendMessageToOpenAI(text);
+    try {
+      console.log('Tentando conectar com OpenRouter...');
+      const apiKey = import.meta.env.VITE_OPENROUTER_API_KEY;
+
+      if (!apiKey) {
+        throw new Error('Chave da API não encontrada');
+      }
+
+      const response = await fetch(
+        'https://openrouter.ai/api/v1/chat/completions',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+            'HTTP-Referer': window.location.origin,
+          },
+          body: JSON.stringify({
+            model: 'meta-llama/llama-3.2-3b-instruct:free',
+            messages: [
+              {
+                role: 'system',
+                content:
+                  'Você é uma assistente virtual amigável e prestativa. Responda de forma clara e detalhada em português do Brasil. Seja conversacional e útil.',
+              },
+              {
+                role: 'user',
+                content: text,
+              },
+            ],
+            max_tokens: 500,
+            temperature: 0.7,
+            top_p: 0.9,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Erro HTTP ${response.status}`);
+      }
+
+      const data = await response.json();
+      const aiResponse = data.choices[0].message.content;
+
+      setMessages((prev) => [...prev, { text: aiResponse, isUser: false }]);
+    } catch (error) {
+      console.error('Erro:', error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          text: `Erro: ${error.message}`,
+          isUser: false,
+        },
+      ]);
+    }
 
     setIsLoading(false);
-
-    if (aiResponse) {
-      setMessages((prev) => [...prev, { text: aiResponse, isUser: false }]);
-    }
   };
 
   return (
@@ -204,7 +126,7 @@ Maria:`,
               </div>
             </div>
           )}
-          <div ref={messagesEndRef} />
+          <div />
         </div>
       </main>
 

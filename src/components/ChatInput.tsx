@@ -1,20 +1,23 @@
-import { useState } from "react";
-import { Send, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import { Send, Loader2, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 const ChatInput = ({ onSendMessage, isLoading }) => {
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
     if (input.trim() && !isLoading) {
       onSendMessage(input);
-      setInput("");
+      setInput('');
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex gap-2 p-4 glass-effect rounded-2xl">
+    <form
+      onSubmit={handleSubmit}
+      className="flex gap-2 p-4 glass-effect rounded-2xl"
+    >
       <input
         type="text"
         value={input}
